@@ -1,0 +1,33 @@
+*Isim, Soyisim: Sanan Garayev
+*Okul numarasi: 040190918
+*Odev 2
+
+START	STA $FF, YÖNLEN.B		;PIA.B conditioned as output
+	STA $00, YÖNLEN.A		;PIA.A conditioned as input
+	LDA A, %1000000	 		;Rightmost bit is 1  initially
+
+CONDITIONAL LDA  C,  <ÝSKELE.A>	;Read from Port-A
+		 LSL C			;Shift left C, so leftmost bit goes to Carry bit
+            BIC APPLICATION2	;if Carry bit is 1 apply APPLICATION2
+		 BRA APPLICATION1	;Unless apply APPLICATION1
+
+APPLICATION1	STA A, ÝSKELE.B	;Display the LEDs
+	BSR  WAIT				;Call subroutine
+	MOV B, A				;Copy A to B
+	LSR B					;Shift Right B, so rightmost bit goes to Carry flag
+	ROR A					;Rotate right A, so carry flag goes to leftmost bit
+	BRA CONDITIONAL 		;Goto main loop
+                    INT
+APPLICATION2 LDA D,%10101010	;Load LED configuration data to D
+	STA D, <ÝSKELE.B>		;Store D to Port B
+	BSR WAIT				;Goto WAIT subroutine
+	LDA D, %01010101		;Load LED configuration data to D
+	STA D, <ÝSKELE.B>		;Store D to Port B
+	BSR WAIT				;Goto WAIT subroutine
+	BRA CONDITIONAL			;Goto Conditional function
+
+*------------------------------------------------------------------------
+WAIT	LDA SK,40000			;Wait loop limit
+AZALT	DEC  SK				;Decrement loop counter
+	BNE AZALT				;If not equal zero,goto wait loop
+                    RTS		;Return from subroutine
